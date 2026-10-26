@@ -1,0 +1,86 @@
+Table peran {
+  id_peran int [pk, increment]
+  nama_peran varchar [not null, unique]
+  deskripsi varchar
+}
+
+Table pengguna {
+  id_pengguna int [pk, increment]
+  id_peran int [not null, ref: > peran.id_peran]
+  nama_lengkap varchar [not null]
+  nim_nip varchar [not null, unique]
+  email varchar [not null, unique]
+  password_hash varchar [not null]
+  no_telepon varchar
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table kategori_barang {
+  id_kategori int [pk, increment]
+  nama_kategori varchar [not null, unique]
+  deskripsi varchar
+}
+
+Table barang {
+  id_barang int [pk, increment]
+  id_kategori int [not null, ref: > kategori_barang.id_kategori]
+  kode_barang varchar [not null, unique]
+  nama_barang varchar [not null]
+  deskripsi text
+  lokasi_simpan varchar
+  status status_barang_enum [not null, default: 'tersedia']
+  created_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+}
+
+Table peminjaman {
+  id_peminjaman int [pk, increment]
+  id_pengguna int [not null, ref: > pengguna.id_pengguna]
+  id_admin int [ref: > pengguna.id_pengguna]
+  tanggal_pengajuan timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  tanggal_pinjam date [not null]
+  tanggal_kembali_rencana date [not null]
+  keperluan varchar [not null]
+  status status_peminjaman_enum [not null, default: 'diajukan']
+  catatan_admin varchar
+  tanggal_diproses timestamp
+}
+
+Table detail_peminjaman {
+  id_detail int [pk, increment]
+  id_peminjaman int [not null, ref: > peminjaman.id_peminjaman]
+  id_barang int [not null, ref: > barang.id_barang]
+
+  indexes {
+    (id_peminjaman, id_barang) [unique]
+  }
+}
+
+Table pengembalian {
+  id_pengembalian int [pk, increment]
+  id_detail int [not null, unique, ref: - detail_peminjaman.id_detail]
+  id_admin int [ref: > pengguna.id_pengguna]
+  tanggal_dikembalikan timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  kondisi kondisi_barang_enum [not null, default: 'baik']
+  catatan varchar
+}
+
+Enum status_barang_enum {
+  tersedia
+  dipinjam
+  perbaikan
+}
+
+Enum status_peminjaman_enum {
+  diajukan
+  disetujui
+  ditolak
+  dipinjam
+  selesai
+}
+
+Enum kondisi_barang_enum {
+  baik
+  rusak_ringan
+  rusak_berat
+  hilang
+}
